@@ -581,7 +581,7 @@
 
     <!-- Application Logic -->
     <script>
-        const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwLhGrny1eREF7V8EzxPR7mPj0k3poGG3bCEhQpairgtlJA8IhhaTOu8pfnjsV52zqy-w/exec';
+        const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyVZjo27xiuF00q8Dg-yg7ggECV6YzWJ4c0DWosivZQE0STAy1qUq-lhuLn9g9nPbKZrg/exec';
         let googleScriptUrl = DEFAULT_SCRIPT_URL;
 
         const OWNER_PASSWORD = '037cafe';
@@ -652,6 +652,10 @@
                             categories.push(matchedCat);
                         }
 
+                        // รองรับคอลัมน์ H, I, J
+                        const isOrderedVal = row.isOrdered !== undefined ? row.isOrdered : row['สั่งซื้อแล้ว'];
+                        const isOrderedBool = (isOrderedVal === true || String(isOrderedVal).toUpperCase() === 'TRUE');
+
                         return {
                             id: row.id || idx + 1,
                             code: row.code || row['รหัสสินค้า'] || '',
@@ -662,9 +666,9 @@
                             categoryId: matchedCat.id,
                             categoryName: catName,
                             unit: row.unit || 'ชิ้น',
-                            isOrdered: Boolean(row.isOrdered),
-                            orderedQty: Number(row.orderedQty || 0),
-                            orderedNote: row.orderedNote || ''
+                            isOrdered: isOrderedBool,
+                            orderedQty: Number(row.orderedQty || row['จำนวนที่สั่งซื้อ'] || 0),
+                            orderedNote: String(row.orderedNote || row['หมายเหตุสั่งซื้อ'] || '')
                         };
                     });
 
