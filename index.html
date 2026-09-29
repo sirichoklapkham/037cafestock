@@ -584,9 +584,12 @@
 
     <!-- Application Logic -->
     <script>
-        const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwBGBv-2oZKQ5mQb2Jtj1sd08Nrgj1locItSrhA-ReNxRqcPyS6Jl_bBI3ORa4M9luB1A/exec';
+        // กำหนด URL เริ่มต้นที่ต้องการใช้อัตโนมัติ
+        const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz7byNUBrOE_Oenm5wOcRDWruKib4bzzuCJ8Kzv3PkiBw1pJq6xTsIjeQjHrUu5sGvTnw/exec';
 
-        let googleScriptUrl = localStorage.getItem('037_script_url') || DEFAULT_SCRIPT_URL;
+        // บันทึกลง localStorage และดึงใช้งานอัตโนมัติทุกครั้งเมื่อเปิดเว็บ
+        localStorage.setItem('037_script_url', DEFAULT_SCRIPT_URL);
+        let googleScriptUrl = DEFAULT_SCRIPT_URL;
 
         const OWNER_PASSWORD = '037cafe';
         let currentRole = 'STAFF';
@@ -677,10 +680,13 @@
                 const res = await fetch(googleScriptUrl);
                 const resData = await res.json();
 
-                if (resData.webAppUrl && resData.webAppUrl !== googleScriptUrl) {
-                    googleScriptUrl = resData.webAppUrl;
-                    localStorage.setItem('037_script_url', resData.webAppUrl);
-                    console.log('อัปเดต URL ล่าสุดจาก คอลัมน์ H ใน Sheet:', resData.webAppUrl);
+                // ตรวจสอบคอลัมน์ H (H2) ที่ส่งกลับมาจาก Apps Script
+                if (resData.webAppUrl && resData.webAppUrl !== '') {
+                    if (resData.webAppUrl !== googleScriptUrl) {
+                        googleScriptUrl = resData.webAppUrl;
+                        localStorage.setItem('037_script_url', resData.webAppUrl);
+                        console.log('อัปเดต URL อัตโนมัติจาก คอลัมน์ H2 ใน Sheet:', resData.webAppUrl);
+                    }
                 }
 
                 if (resData.categories && Array.isArray(resData.categories) && resData.categories.length > 0) {
@@ -713,7 +719,7 @@
                     });
 
                     saveToLocalStorage();
-                    showToast('ซิงค์ข้อมูลสต๊อกและหมวดหมู่สำเร็จ');
+                    showToast('ซิงค์ข้อมูลสต๊อก หมวดหมู่ และ URL เรียบร้อย');
                 } else {
                     loadLocalOrDefaultData();
                 }
