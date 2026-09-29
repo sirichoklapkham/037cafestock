@@ -68,7 +68,7 @@
         <div class="p-4 md:p-5 flex items-center justify-between space-x-3">
             <div>
                 <h1 class="font-bold text-base md:text-lg leading-tight text-slate-800">037Cafe & Studio</h1>
-                <p class="text-[11px] text-slate-400 font-medium">Stock Management v1.3</p>
+                <p class="text-[11px] text-slate-400 font-medium">Stock Management v1.4</p>
             </div>
             
             <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="md:hidden p-2 text-slate-600 focus:outline-none rounded-xl hover:bg-slate-50">
@@ -107,11 +107,6 @@
                     <i class="fa-solid fa-rotate"></i>
                     <span>ดึงข้อมูลล่าสุดจาก Sheets</span>
                 </button>
-                <button id="nav-config-script" onclick="openScriptConfigModal()" class="owner-col hidden w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl text-xs text-slate-500 hover:text-amber-700 hover:bg-amber-50 transition-all">
-                    <i class="fa-solid fa-link"></i>
-                    <span>ตั้งค่าลิงก์ Google Script</span>
-                </button>
-                <!-- ปุ่มทดสอบแจ้งเตือน LINE -->
                 <button id="nav-test-line" onclick="testLineNotification()" class="owner-col hidden w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl text-xs text-green-600 hover:bg-green-50 transition-all font-semibold">
                     <i class="fa-brands fa-line text-sm"></i>
                     <span>ทดสอบแจ้งเตือน LINE</span>
@@ -262,7 +257,7 @@
 
                 <div id="staff-notice-banner" class="bg-[#FDF0F0] border border-[#F4C2C2] p-3 rounded-xl text-xs text-rose-800 flex items-center gap-2">
                     <i class="fa-solid fa-circle-info text-rose-500 text-sm flex-shrink-0"></i>
-                    <span><strong>โหมดพนักงาน:</strong> กดปุ่ม <strong>"กรอก/ปรับจำนวน"</strong> เพื่ออัปเดตนับสต๊อกสินค้า</span>
+                    <span><strong>โหมดพนักงาน:</strong> รายการที่มีสถานะ <span class="text-amber-700 font-bold">"สั่งซื้อแล้ว"</span> คือกำลังรอสินค้ามาส่ง คุณสามารถกดปุ่ม <strong>"กรอก/ปรับจำนวน"</strong> เมื่อของมาถึงได้</span>
                 </div>
 
                 <div id="inventory-mobile-list" class="block md:hidden space-y-3"></div>
@@ -347,7 +342,6 @@
                             </button>
                         </div>
 
-                        <!-- Search for Purchase History -->
                         <div class="relative w-full">
                             <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs"></i>
                             <input type="text" id="purchase-search" oninput="renderPurchaseHistory()" placeholder="ค้นหาประวัติสั่งซื้อตามชื่อสินค้า หรือผู้ขาย..." class="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-[#C1E1C1]">
@@ -414,32 +408,6 @@
     </main>
 
     <!-- MODALS -->
-    <!-- SCRIPT CONFIG MODAL -->
-    <div id="script-config-modal" class="fixed inset-0 modal-backdrop z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full p-5 md:p-6 shadow-xl space-y-4">
-            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                <div class="flex items-center space-x-2">
-                    <i class="fa-solid fa-link text-amber-600"></i>
-                    <h3 class="font-bold text-slate-800 text-sm">ตั้งค่า Google Apps Script Web App URL</h3>
-                </div>
-                <button onclick="closeScriptConfigModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-
-            <form onsubmit="handleSaveScriptUrl(event)" class="space-y-3 text-xs">
-                <div>
-                    <label class="block text-slate-600 font-medium mb-1">Google Apps Script Web App URL</label>
-                    <input type="url" id="script-url-input" required placeholder="https://script.google.com/macros/s/.../exec" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#C1E1C1] outline-none text-xs">
-                    <p class="text-slate-400 mt-1 text-[11px]">เมื่อปรับแก้และบันทึก ลิงก์นี้จะถูกบันทึกลงไปใน Google Sheet คอลัมน์ H (H2) โดยอัตโนมัติ</p>
-                </div>
-
-                <div class="flex justify-end gap-2 pt-2">
-                    <button type="button" onclick="closeScriptConfigModal()" class="px-3 py-2 text-slate-500 hover:bg-slate-100 rounded-xl transition">ยกเลิก</button>
-                    <button type="submit" class="pastel-gradient-btn px-4 py-2 font-semibold rounded-xl shadow-sm">บันทึก URL</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <!-- OWNER AUTH MODAL -->
     <div id="owner-auth-modal" class="fixed inset-0 modal-backdrop z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 md:p-6 shadow-xl space-y-4">
@@ -613,11 +581,7 @@
 
     <!-- Application Logic -->
     <script>
-        // กำหนด URL เริ่มต้นที่ต้องการใช้อัตโนมัติ
-        const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwu9sZKXh9W5MICfJkm9Ohlxl8_PPRZpZph8FwFYJ3UJFmFfUWbr-J8xBsyFGzZIvy8oA/exec';
-
-        // บันทึกลง localStorage และดึงใช้งานอัตโนมัติทุกครั้งเมื่อเปิดเว็บ
-        localStorage.setItem('037_script_url', DEFAULT_SCRIPT_URL);
+        const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz7byNUBrOE_Oenm5wOcRDWruKib4bzzuCJ8Kzv3PkiBw1pJq6xTsIjeQjHrUu5sGvTnw/exec';
         let googleScriptUrl = DEFAULT_SCRIPT_URL;
 
         const OWNER_PASSWORD = '037cafe';
@@ -631,22 +595,13 @@
         let purchases = [];
         let adjustLogs = [];
 
-        function openScriptConfigModal() {
-            document.getElementById('script-url-input').value = googleScriptUrl;
-            document.getElementById('script-config-modal').classList.remove('hidden');
-        }
-
-        function closeScriptConfigModal() {
-            document.getElementById('script-config-modal').classList.add('hidden');
-        }
-
         // ระบบทดสอบส่งข้อความแจ้งเตือนเข้า LINE ผ่าน API
         async function testLineNotification() {
             if (!googleScriptUrl) return alert('กรุณาตั้งค่า Google Script URL ก่อนทำรายการทดสอบ');
             
             showToast('กำลังส่งข้อความทดสอบไปยัง LINE...');
             try {
-                const response = await fetch(googleScriptUrl, {
+                await fetch(googleScriptUrl, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
@@ -656,34 +611,6 @@
             } catch (err) {
                 console.error('Test Line Notification error:', err);
                 alert('เกิดข้อผิดพลาดในการเชื่อมต่อส่งข้อความทดสอบ LINE');
-            }
-        }
-
-        async function handleSaveScriptUrl(e) {
-            e.preventDefault();
-            const newUrl = document.getElementById('script-url-input').value.trim();
-            if (newUrl) {
-                googleScriptUrl = newUrl;
-                localStorage.setItem('037_script_url', newUrl);
-                closeScriptConfigModal();
-                showToast('อัปเดต Web App URL เรียบร้อยแล้วกำลังซิงค์ลง Google Sheet...');
-
-                try {
-                    await fetch(googleScriptUrl, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            action: 'updateScriptUrl',
-                            scriptUrl: newUrl
-                        })
-                    });
-                    showToast('บันทึก URL ลงคอลัมน์ H ใน Google Sheet เรียบร้อย');
-                } catch (err) {
-                    console.error('ไม่สามารถบันทึก URL ลง Sheet ได้:', err);
-                }
-
-                fetchDataFromGoogleSheet();
             }
         }
 
@@ -708,15 +635,6 @@
                 showToast('กำลังซิงค์ข้อมูลจาก Google Sheets...');
                 const res = await fetch(googleScriptUrl);
                 const resData = await res.json();
-
-                // ตรวจสอบคอลัมน์ H (H2) ที่ส่งกลับมาจาก Apps Script
-                if (resData.webAppUrl && resData.webAppUrl !== '') {
-                    if (resData.webAppUrl !== googleScriptUrl) {
-                        googleScriptUrl = resData.webAppUrl;
-                        localStorage.setItem('037_script_url', resData.webAppUrl);
-                        console.log('อัปเดต URL อัตโนมัติจาก คอลัมน์ H2 ใน Sheet:', resData.webAppUrl);
-                    }
-                }
 
                 if (resData.categories && Array.isArray(resData.categories) && resData.categories.length > 0) {
                     categories = resData.categories;
@@ -751,7 +669,7 @@
                     });
 
                     saveToLocalStorage();
-                    showToast('ซิงค์ข้อมูลสต๊อก หมวดหมู่ และ URL เรียบร้อย');
+                    showToast('ซิงค์ข้อมูลสต๊อกและหมวดหมู่เรียบร้อย');
                 } else {
                     loadLocalOrDefaultData();
                 }
@@ -782,7 +700,6 @@
             localStorage.setItem('037_adjust_logs', JSON.stringify(adjustLogs));
         }
 
-        // ส่งข้อมูลไปยัง Google Sheets และยิงส่งข้อความเข้า LINE
         async function syncItemToGoogleSheet(action, payloadData) {
             if (!googleScriptUrl) return;
 
@@ -839,7 +756,6 @@
             const navDashboard = document.getElementById('nav-dashboard');
             const navPurchase = document.getElementById('nav-purchase');
             const navCategories = document.getElementById('nav-categories');
-            const navConfigScript = document.getElementById('nav-config-script');
             const navTestLine = document.getElementById('nav-test-line');
             const ownerAddBtn = document.getElementById('owner-add-item-btn');
             const staffBanner = document.getElementById('staff-notice-banner');
@@ -853,7 +769,6 @@
                 if (navDashboard) navDashboard.classList.remove('hidden');
                 if (navPurchase) navPurchase.classList.remove('hidden');
                 if (navCategories) navCategories.classList.remove('hidden');
-                if (navConfigScript) navConfigScript.classList.remove('hidden');
                 if (navTestLine) navTestLine.classList.remove('hidden');
                 if (ownerAddBtn) ownerAddBtn.classList.remove('hidden');
                 if (staffBanner) staffBanner.classList.add('hidden');
@@ -869,7 +784,6 @@
                 if (navDashboard) navDashboard.classList.add('hidden');
                 if (navPurchase) navPurchase.classList.add('hidden');
                 if (navCategories) navCategories.classList.add('hidden');
-                if (navConfigScript) navConfigScript.classList.add('hidden');
                 if (navTestLine) navTestLine.classList.add('hidden');
                 if (ownerAddBtn) ownerAddBtn.classList.add('hidden');
                 if (staffBanner) staffBanner.classList.remove('hidden');
@@ -1025,17 +939,20 @@
                 const catName = cat ? cat.name : (item.categoryName || '-');
                 const isLow = Number(item.stock) <= Number(item.minAlert);
 
-                // สถานะการแสดงผล
+                // ป้ายบอกสถานะการสั่งซื้อ
                 let statusBadge = '';
+                let textColorClass = 'text-slate-800';
+
                 if (item.isOrdered) {
                     statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-700">สั่งซื้อแล้ว (${item.orderedQty} ${escapeHtml(item.unit)})</span>`;
+                    textColorClass = 'text-amber-600 font-bold'; // ข้อความสีเหลือง/ส้มเมื่อสั่งซื้อแล้ว
                 } else if (isLow) {
                     statusBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-100 text-rose-700">สต๊อกต่ำ</span>';
+                    textColorClass = 'text-rose-600 font-bold';
                 } else {
                     statusBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700">ปกติ</span>';
                 }
 
-                // ปุ่มสั่งซื้อสำหรับเจ้าของร้าน
                 let ownerOrderBtn = '';
                 if (currentRole === 'OWNER' && isLow && !item.isOrdered) {
                     ownerOrderBtn = `<button onclick="openMarkOrderedModal(${item.id})" class="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-semibold shadow-sm transition">สั่งซื้อแล้ว</button>`;
@@ -1055,7 +972,7 @@
                         <div class="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                             <div>
                                 <p class="text-[10px] text-slate-400">จำนวนคงเหลือ</p>
-                                <p class="font-bold ${item.isOrdered ? 'text-amber-600' : (isLow ? 'text-rose-600' : 'text-slate-800')} text-base">
+                                <p class="${textColorClass} text-base">
                                     ${item.stock} <span class="text-xs font-normal text-slate-500">${escapeHtml(item.unit)}</span>
                                 </p>
                             </div>
@@ -1077,10 +994,14 @@
                 const isLow = Number(item.stock) <= Number(item.minAlert);
 
                 let statusBadge = '';
+                let textColorClass = 'text-slate-800';
+
                 if (item.isOrdered) {
                     statusBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-700">สั่งซื้อแล้ว (${item.orderedQty} ${escapeHtml(item.unit)})</span>`;
+                    textColorClass = 'text-amber-600 font-bold'; // ข้อความสีเหลือง/ส้มเมื่อสั่งซื้อแล้ว
                 } else if (isLow) {
                     statusBadge = '<span class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-rose-100 text-rose-700">สต๊อกต่ำ</span>';
+                    textColorClass = 'text-rose-600 font-bold';
                 } else {
                     statusBadge = '<span class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700">ปกติ</span>';
                 }
@@ -1095,7 +1016,7 @@
                         <td class="py-3 px-4 font-mono font-semibold text-slate-600">${escapeHtml(item.code)}</td>
                         <td class="py-3 px-4 font-medium text-slate-800">${escapeHtml(item.name)}</td>
                         <td class="py-3 px-4 text-slate-500">${escapeHtml(catName)}</td>
-                        <td class="py-3 px-4 font-bold ${item.isOrdered ? 'text-amber-600' : (isLow ? 'text-rose-600' : 'text-slate-800')}">
+                        <td class="py-3 px-4 ${textColorClass}">
                             ${item.stock} <span class="text-slate-400 font-normal text-[11px]">${escapeHtml(item.unit)}</span>
                         </td>
                         <td class="py-3 px-4 text-slate-500">${item.minAlert} ${escapeHtml(item.unit)}</td>
@@ -1203,7 +1124,7 @@
             closeItemModal();
             renderAllViews();
             initPurchaseForm();
-            showToast('บันทึกข้อมูลสินค้าและส่งแจ้งเตือนเรียบร้อย');
+            showToast('บันทึกข้อมูลสินค้าเรียบร้อย');
 
             syncItemToGoogleSheet('saveItem', newItemObj);
         }
@@ -1222,7 +1143,7 @@
             }
         }
 
-        // ฟังก์ชันจัดการ Modal สั่งซื้อแล้ว (โหมดเจ้าของร้าน)
+        // ฟังก์ชันเปิด Modal เปลี่ยนสถานะเป็นสั่งซื้อแล้ว (โหมดเจ้าของร้าน)
         function openMarkOrderedModal(itemId) {
             const item = items.find(i => Number(i.id) === Number(itemId));
             if (!item) return;
@@ -1445,7 +1366,7 @@
             document.getElementById('purchase-total-display').innerText = '฿0.00';
             document.getElementById('purchase-unit-label').innerText = '';
 
-            showToast('บันทึกการสั่งซื้อ และแจ้งเตือนเข้า LINE เรียบร้อย');
+            showToast('บันทึกการสั่งซื้อเรียบร้อย');
 
             syncItemToGoogleSheet('purchase', {
                 code: item.code,
