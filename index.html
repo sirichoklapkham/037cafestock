@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>037Cafe & Studio - Stock Management System</title>
 
+    <!-- iOS Apple Touch Icon (ไอคอนหน้าจอโฮม iOS) -->
+    <link rel="apple-touch-icon" sizes="180x180" href="037Studio (180 x 180 px).png">
+    
+    <!-- iOS Web App Capability & Theme -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="037Cafe">
+    <link rel="icon" type="image/png" href="037Studio (180 x 180 px).png">
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -254,28 +263,11 @@
                     <span><strong>โหมดพนักงาน:</strong> กดปุ่ม <strong>"กรอก/ปรับจำนวน"</strong> เพื่ออัปเดตนับสต๊อกสินค้า</span>
                 </div>
 
-                <div id="inventory-mobile-list" class="block md:hidden space-y-3"></div>
+                <!-- แสดงผลกลุ่มหมวดหมู่สินค้าบน Mobile -->
+                <div id="inventory-mobile-list" class="block md:hidden space-y-4"></div>
 
-                <div class="hidden md:block bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-slate-50/80 text-xs font-semibold text-slate-500 border-b border-slate-100">
-                                    <th class="py-3 px-4">รหัส</th>
-                                    <th class="py-3 px-4">ชื่อสินค้า</th>
-                                    <th class="py-3 px-4">หมวดหมู่</th>
-                                    <th class="py-3 px-4">คงเหลือ</th>
-                                    <th class="py-3 px-4">จุดเตือนต่ำ</th>
-                                    <th class="py-3 px-4 owner-col hidden">ต้นทุนล่าสุด</th>
-                                    <th class="py-3 px-4">สถานะ</th>
-                                    <th class="py-3 px-4 text-center">ปรับ / บันทึกสต๊อก</th>
-                                    <th class="py-3 px-4 text-right owner-col hidden">จัดการ</th>
-                                </tr>
-                            </thead>
-                            <tbody id="inventory-table-body" class="text-xs divide-y divide-slate-100"></tbody>
-                        </table>
-                    </div>
-                </div>
+                <!-- แสดงผลกลุ่มหมวดหมู่สินค้าบน Desktop -->
+                <div id="inventory-desktop-list" class="hidden md:block space-y-4"></div>
             </section>
 
             <!-- PURCHASE TAB -->
@@ -554,6 +546,7 @@
         let categories = [{ id: 1, name: 'ทั่วไป' }];
         let items = [];
         let purchases = [];
+        let collapsedCategories = {}; // เก็บสถานะการย่อ/ขยายหมวดหมู่
 
         function openScriptConfigModal() {
             document.getElementById('script-url-input').value = googleScriptUrl;
@@ -818,7 +811,7 @@
                 lowListContainer.innerHTML = lowStockItems.map(item => `
                     <div class="p-2.5 bg-rose-50/60 rounded-xl border border-rose-100 flex justify-between items-center text-xs">
                         <div>
-                            <p class="font-semibold text-slate-800">${escapeHtml(item.name)}</p>
+                            <p class="font-bold text-slate-800 text-sm">${escapeHtml(item.name)}</p>
                             <p class="text-[11px] text-rose-600 font-medium">คงเหลือ: ${item.stock} ${escapeHtml(item.unit)}</p>
                         </div>
                         <button onclick="openQuickAdjustModal(${item.id})" class="px-2.5 py-1 bg-white border border-rose-200 text-rose-700 rounded-lg font-medium shadow-sm">
@@ -862,6 +855,12 @@
             });
         }
 
+        // สลับเปิด/ปิดการแสดงผลของหมวดหมู่
+        function toggleCategoryGroup(catId) {
+            collapsedCategories[catId] = !collapsedCategories[catId];
+            renderInventoryTable();
+        }
+
         function renderInventoryTable() {
             const searchVal = document.getElementById('inventory-search').value.toLowerCase();
             const catVal = document.getElementById('inventory-cat-filter').value;
@@ -871,7 +870,8 @@
                 el.classList.toggle('hidden', currentRole === 'STAFF');
             });
 
-            const filtered = items.filter(item => {
+            // กรองสินค้าตามการค้นหาและฟิลเตอร์
+            const filteredItems = items.filter(item => {
                 const matchSearch = item.name.toLowerCase().includes(searchVal) || item.code.toLowerCase().includes(searchVal);
                 const matchCat = (catVal === 'ALL') || (item.categoryId == catVal);
                 
@@ -882,74 +882,151 @@
                 return matchSearch && matchCat && matchStatus;
             });
 
-            const tbody = document.getElementById('inventory-table-body');
             const mobileContainer = document.getElementById('inventory-mobile-list');
+            const desktopContainer = document.getElementById('inventory-desktop-list');
 
-            if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" class="py-6 text-center text-slate-400">ไม่พบข้อมูลสินค้า</td></tr>`;
-                mobileContainer.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 bg-white rounded-2xl border border-slate-100">ไม่พบข้อมูลสินค้า</div>`;
+            if (filteredItems.length === 0) {
+                const emptyState = `<div class="p-8 text-center text-sm text-slate-400 bg-white rounded-2xl border border-slate-100">ไม่พบข้อมูลสินค้า</div>`;
+                mobileContainer.innerHTML = emptyState;
+                desktopContainer.innerHTML = emptyState;
                 return;
             }
 
-            mobileContainer.innerHTML = filtered.map(item => {
-                const cat = categories.find(c => Number(c.id) === Number(item.categoryId));
-                const catName = cat ? cat.name : (item.categoryName || '-');
-                const isLow = Number(item.stock) <= Number(item.minAlert);
+            // จัดกลุ่มสินค้าตามหมวดหมู่
+            const grouped = {};
+            categories.forEach(cat => {
+                grouped[cat.id] = {
+                    info: cat,
+                    items: []
+                };
+            });
 
-                return `
-                    <div class="bg-white p-3.5 rounded-2xl border border-slate-100 shadow-sm space-y-2">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <span class="text-[10px] font-mono text-slate-400">${escapeHtml(item.code)}</span>
-                                <h4 class="font-bold text-slate-800 text-sm leading-tight">${escapeHtml(item.name)}</h4>
-                                <p class="text-[11px] text-slate-400">${escapeHtml(catName)}</p>
-                            </div>
-                            ${isLow ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-100 text-rose-700">สต๊อกต่ำ</span>' : '<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700">ปกติ</span>'}
-                        </div>
+            filteredItems.forEach(item => {
+                const catId = item.categoryId || 1;
+                if (!grouped[catId]) {
+                    grouped[catId] = {
+                        info: { id: catId, name: item.categoryName || 'ทั่วไป' },
+                        items: []
+                    };
+                }
+                grouped[catId].items.push(item);
+            });
 
-                        <div class="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                            <div>
-                                <p class="text-[10px] text-slate-400">จำนวนคงเหลือ</p>
-                                <p class="font-bold ${isLow ? 'text-rose-600' : 'text-slate-800'} text-base">
-                                    ${item.stock} <span class="text-xs font-normal text-slate-500">${escapeHtml(item.unit)}</span>
-                                </p>
+            let mobileHtml = '';
+            let desktopHtml = '';
+
+            Object.keys(grouped).forEach(catId => {
+                const group = grouped[catId];
+                if (group.items.length === 0) return; // ข้ามหมวดหมู่ที่ไม่มีสินค้าตรงตามฟิลเตอร์
+
+                const isCollapsed = !!collapsedCategories[catId];
+
+                // ---------------- 1. Render Mobile View ----------------
+                mobileHtml += `
+                    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                        <button onclick="toggleCategoryGroup(${catId})" class="w-full px-4 py-3 bg-slate-50/80 hover:bg-slate-100 transition flex items-center justify-between border-b border-slate-100">
+                            <div class="flex items-center space-x-2">
+                                <i class="fa-solid fa-folder text-emerald-600 text-base"></i>
+                                <span class="font-bold text-slate-800 text-base md:text-lg">${escapeHtml(group.info.name)}</span>
+                                <span class="px-2 py-0.5 bg-slate-200/60 text-slate-600 rounded-full text-xs font-semibold">${group.items.length}</span>
                             </div>
-                            <button onclick="openQuickAdjustModal(${item.id})" class="px-3 py-2 bg-[#C1E1C1] text-[#1F381F] rounded-xl text-xs font-semibold shadow-sm active:scale-95 transition flex items-center gap-1">
-                                <i class="fa-solid fa-plus-minus"></i>
-                                <span>กรอก/ปรับสต๊อก</span>
-                            </button>
+                            <i class="fa-solid ${isCollapsed ? 'fa-chevron-down' : 'fa-chevron-up'} text-slate-400 transition-transform"></i>
+                        </button>
+                        
+                        <div class="${isCollapsed ? 'hidden' : 'block'} p-3 space-y-3 bg-slate-50/30">
+                            ${group.items.map(item => {
+                                const isLow = Number(item.stock) <= Number(item.minAlert);
+                                return `
+                                    <div class="bg-white p-3.5 rounded-xl border border-slate-100 shadow-sm space-y-2">
+                                        <div class="flex justify-between items-start">
+                                            <div>
+                                                <span class="text-xs font-mono text-slate-400 font-semibold">${escapeHtml(item.code)}</span>
+                                                <!-- ปรับชื่อสินค้าเป็นตัวใหญ่ ชัดเจน -->
+                                                <h4 class="font-bold text-slate-800 text-base md:text-lg leading-tight mt-0.5">${escapeHtml(item.name)}</h4>
+                                            </div>
+                                            ${isLow ? '<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-700">สต๊อกต่ำ</span>' : '<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">ปกติ</span>'}
+                                        </div>
+
+                                        <div class="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border border-slate-100 mt-1">
+                                            <div>
+                                                <p class="text-[11px] text-slate-400">จำนวนคงเหลือ</p>
+                                                <p class="font-bold ${isLow ? 'text-rose-600' : 'text-slate-800'} text-lg">
+                                                    ${item.stock} <span class="text-xs font-normal text-slate-500">${escapeHtml(item.unit)}</span>
+                                                </p>
+                                            </div>
+                                            <button onclick="openQuickAdjustModal(${item.id})" class="px-3.5 py-2 bg-[#C1E1C1] text-[#1F381F] rounded-xl text-xs font-semibold shadow-sm active:scale-95 transition flex items-center gap-1.5">
+                                                <i class="fa-solid fa-plus-minus"></i>
+                                                <span>กรอก/ปรับสต๊อก</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
                         </div>
                     </div>
                 `;
-            }).join('');
 
-            tbody.innerHTML = filtered.map(item => {
-                const cat = categories.find(c => Number(c.id) === Number(item.categoryId));
-                const catName = cat ? cat.name : (item.categoryName || '-');
-                const isLow = Number(item.stock) <= Number(item.minAlert);
+                // ---------------- 2. Render Desktop View ----------------
+                desktopHtml += `
+                    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                        <!-- แถบหัวข้อหมวดหมู่แบบเปิด/ย่อปิดได้ -->
+                        <button onclick="toggleCategoryGroup(${catId})" class="w-full px-5 py-3.5 bg-slate-50/80 hover:bg-slate-100 transition flex items-center justify-between border-b border-slate-100">
+                            <div class="flex items-center space-x-3">
+                                <i class="fa-solid fa-folder text-emerald-600 text-lg"></i>
+                                <!-- ชื่อหมวดหมู่ ตัวใหญ่ สะดุดตา -->
+                                <span class="font-bold text-slate-800 text-base md:text-lg">${escapeHtml(group.info.name)}</span>
+                                <span class="px-2.5 py-0.5 bg-slate-200/70 text-slate-600 rounded-full text-xs font-semibold">${group.items.length} รายการ</span>
+                            </div>
+                            <i class="fa-solid ${isCollapsed ? 'fa-chevron-down' : 'fa-chevron-up'} text-slate-400 transition-transform"></i>
+                        </button>
 
-                return `
-                    <tr class="hover:bg-slate-50/50 transition">
-                        <td class="py-3 px-4 font-mono font-semibold text-slate-600">${escapeHtml(item.code)}</td>
-                        <td class="py-3 px-4 font-medium text-slate-800">${escapeHtml(item.name)}</td>
-                        <td class="py-3 px-4 text-slate-500">${escapeHtml(catName)}</td>
-                        <td class="py-3 px-4 font-bold ${isLow ? 'text-rose-600' : 'text-slate-800'}">
-                            ${item.stock} <span class="text-slate-400 font-normal text-[11px]">${escapeHtml(item.unit)}</span>
-                        </td>
-                        <td class="py-3 px-4 text-slate-500">${item.minAlert} ${escapeHtml(item.unit)}</td>
-                        ${currentRole === 'OWNER' ? `<td class="py-3 px-4 text-slate-700">฿${Number(item.lastCost || 0).toFixed(2)}</td>` : ''}
-                        <td class="py-3 px-4">${isLow ? '<span class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-rose-100 text-rose-700">สต๊อกต่ำ</span>' : '<span class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700">ปกติ</span>'}</td>
-                        <td class="py-3 px-4 text-center">
-                            <button onclick="openQuickAdjustModal(${item.id})" class="p-1.5 px-3 bg-slate-100 hover:bg-[#C1E1C1] text-slate-700 rounded-lg text-xs font-semibold transition">
-                                <i class="fa-solid fa-plus-minus mr-1"></i> กรอก/ปรับจำนวน
-                            </button>
-                        </td>
-                        ${currentRole === 'OWNER' ? `<td class="py-3 px-4 text-right space-x-1">
-                            <button onclick="openItemModal(${item.id})" class="p-1.5 text-slate-400 hover:text-slate-700"><i class="fa-solid fa-pen-to-square"></i></button>
-                        </td>` : ''}
-                    </tr>
+                        <div class="${isCollapsed ? 'hidden' : 'block'} overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50/40 text-xs font-semibold text-slate-500 border-b border-slate-100">
+                                        <th class="py-3 px-4">รหัส</th>
+                                        <th class="py-3 px-4">ชื่อสินค้า</th>
+                                        <th class="py-3 px-4">คงเหลือ</th>
+                                        <th class="py-3 px-4">จุดเตือนต่ำ</th>
+                                        ${currentRole === 'OWNER' ? `<th class="py-3 px-4">ต้นทุนล่าสุด</th>` : ''}
+                                        <th class="py-3 px-4">สถานะ</th>
+                                        <th class="py-3 px-4 text-center">ปรับ / บันทึกสต๊อก</th>
+                                        ${currentRole === 'OWNER' ? `<th class="py-3 px-4 text-right">จัดการ</th>` : ''}
+                                    </tr>
+                                </thead>
+                                <tbody class="text-xs divide-y divide-slate-100">
+                                    ${group.items.map(item => {
+                                        const isLow = Number(item.stock) <= Number(item.minAlert);
+                                        return `
+                                            <tr class="hover:bg-slate-50/50 transition">
+                                                <td class="py-3.5 px-4 font-mono font-semibold text-slate-500">${escapeHtml(item.code)}</td>
+                                                <!-- ชื่อสินค้าขนาดใหญ่ ชัดเจน -->
+                                                <td class="py-3.5 px-4 font-bold text-slate-800 text-sm md:text-base">${escapeHtml(item.name)}</td>
+                                                <td class="py-3.5 px-4 font-bold ${isLow ? 'text-rose-600' : 'text-slate-800'} text-sm">
+                                                    ${item.stock} <span class="text-slate-400 font-normal text-xs">${escapeHtml(item.unit)}</span>
+                                                </td>
+                                                <td class="py-3.5 px-4 text-slate-500">${item.minAlert} ${escapeHtml(item.unit)}</td>${currentRole === 'OWNER' ? `<td class="py-3.5 px-4 text-slate-700">฿${Number(item.lastCost || 0).toFixed(2)}</td>` : ''}
+                                                <td class="py-3.5 px-4">${isLow ? '<span class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-rose-100 text-rose-700">สต๊อกต่ำ</span>' : '<span class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700">ปกติ</span>'}</td>
+                                                <td class="py-3.5 px-4 text-center">
+                                                    <button onclick="openQuickAdjustModal(${item.id})" class="p-1.5 px-3 bg-slate-100 hover:bg-[#C1E1C1] text-slate-700 rounded-lg text-xs font-semibold transition">
+                                                        <i class="fa-solid fa-plus-minus mr-1"></i> กรอก/ปรับจำนวน
+                                                    </button>
+                                                </td>
+                                                ${currentRole === 'OWNER' ? `<td class="py-3.5 px-4 text-right space-x-1">
+                                                    <button onclick="openItemModal(${item.id})" class="p-1.5 text-slate-400 hover:text-slate-700"><i class="fa-solid fa-pen-to-square"></i></button>
+                                                </td>` : ''}
+                                            </tr>
+                                        `;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 `;
-            }).join('');
+            });
+
+            mobileContainer.innerHTML = mobileHtml;
+            desktopContainer.innerHTML = desktopHtml;
         }
 
         document.getElementById('inventory-search').addEventListener('input', renderInventoryTable);
@@ -1272,7 +1349,7 @@
                 return `
                     <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
                         <div>
-                            <h4 class="font-bold text-slate-800 text-sm">${escapeHtml(cat.name)}</h4>
+                            <h4 class="font-bold text-slate-800 text-base">${escapeHtml(cat.name)}</h4>
                             <p class="text-xs text-slate-400 font-medium mt-0.5">${itemCount} รายการ</p>
                         </div>
                         <div class="flex items-center gap-1">
