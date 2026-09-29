@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>037Cafe & Studio - Stock Management System</title>
 
-    <!-- iOS Apple Touch Icon (ไอคอนหน้าจอโฮม iOS) -->
-    <link id="apple-touch-icon" rel="apple-touch-icon" sizes="180x180" href="037Studio (180 x 180 px).png">
+    <!-- iOS Apple Touch Icon (ไอคอนหน้าจอโฮม iOS ดึงจาก Google Drive) -->
+    <link rel="apple-touch-icon" sizes="180x180" href="https://drive.google.com/thumbnail?id=1UTeeGot9RJL-NB4NjdgK35m7UeQIL-fe&sz=w180-h180">
     
     <!-- iOS Web App Capability & Theme -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="037Cafe">
-    <link id="site-favicon" rel="icon" type="image/png" href="037Studio (180 x 180 px).png">
+    <link rel="icon" type="image/png" href="https://drive.google.com/thumbnail?id=1UTeeGot9RJL-NB4NjdgK35m7UeQIL-fe&sz=w180-h180">
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -75,12 +75,9 @@
     <!-- Sidebar / Header -->
     <aside class="w-full md:w-64 bg-white border-b md:border-r border-slate-100 flex-shrink-0 shadow-sm z-20 sticky top-0 md:relative">
         <div class="p-4 md:p-5 flex items-center justify-between space-x-3">
-            <div class="flex items-center space-x-3">
-                <img id="app-logo-img" src="037Studio (180 x 180 px).png" alt="Logo" class="w-10 h-10 rounded-xl object-cover border border-slate-100 shadow-sm hidden">
-                <div>
-                    <h1 class="font-bold text-base md:text-lg leading-tight text-slate-800">037Cafe & Studio</h1>
-                    <p class="text-[11px] text-slate-400 font-medium">Stock Management v1.0</p>
-                </div>
+            <div>
+                <h1 class="font-bold text-base md:text-lg leading-tight text-slate-800">037Cafe & Studio</h1>
+                <p class="text-[11px] text-slate-400 font-medium">Stock Management v1.0</p>
             </div>
             
             <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="md:hidden p-2 text-slate-600 focus:outline-none rounded-xl hover:bg-slate-50">
@@ -578,23 +575,7 @@
             return d.toISOString().split('T')[0];
         }
 
-        // ฟังก์ชันช่วยสำหรับการอัปเดตรูปโลโก้ / ไอคอน iOS
-        function updateAppLogo(logoUrl) {
-            if (!logoUrl || typeof logoUrl !== 'string' || !logoUrl.startsWith('http')) return;
-
-            const appleTouchIcon = document.getElementById('apple-touch-icon');
-            const siteFavicon = document.getElementById('site-favicon');
-            const appLogoImg = document.getElementById('app-logo-img');
-
-            if (appleTouchIcon) appleTouchIcon.href = logoUrl;
-            if (siteFavicon) siteFavicon.href = logoUrl;
-            if (appLogoImg) {
-                appLogoImg.src = logoUrl;
-                appLogoImg.classList.remove('hidden');
-            }
-        }
-
-        // ดึงข้อมูลทั้งหมวดหมู่ สินค้า และโลโก้จาก Google Sheets
+        // ดึงข้อมูลทั้งหมวดหมู่และสินค้าจาก Google Sheets
         async function fetchDataFromGoogleSheet() {
             if (!googleScriptUrl) {
                 loadLocalOrDefaultData();
@@ -605,22 +586,6 @@
                 showToast('กำลังซิงค์ข้อมูลจาก Google Sheets...');
                 const res = await fetch(googleScriptUrl);
                 const resData = await res.json();
-
-                // 0. ดึงรูปโลโก้จาก Column J (Index 9 หรือ Key 'logo')
-                let logoUrl = resData.logoUrl || resData.appLogo || null;
-                if (!logoUrl) {
-                    if (Array.isArray(resData) && resData.length > 0) {
-                        const firstRow = resData[0];
-                        logoUrl = firstRow.logo || firstRow.appLogo || firstRow['โลโก้'] || (Array.isArray(firstRow) ? firstRow[9] : null);
-                    } else if (resData.items && Array.isArray(resData.items) && resData.items.length > 0) {
-                        const firstRow = resData.items[0];
-                        logoUrl = firstRow.logo || firstRow.appLogo || firstRow['โลโก้'] || (Array.isArray(firstRow) ? firstRow[9] : null);
-                    }
-                }
-
-                if (logoUrl) {
-                    updateAppLogo(logoUrl);
-                }
 
                 // 1. ดึงหมวดหมู่สินค้า
                 if (resData.categories && Array.isArray(resData.categories) && resData.categories.length > 0) {
@@ -1233,7 +1198,7 @@
             e.preventDefault();
             const date = document.getElementById('purchase-date').value;
             const itemId = Number(document.getElementById('purchase-item-id').value);
-            const unitCost = Number(document.getElementById('purchase-[#purchase-unit-cost]').value);
+            const unitCost = Number(document.getElementById('purchase-unit-cost').value);
             const qty = Number(document.getElementById('purchase-qty').value);
             const supplier = document.getElementById('purchase-supplier').value.trim();
 
