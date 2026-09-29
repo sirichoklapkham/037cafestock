@@ -614,7 +614,7 @@
     <!-- Application Logic -->
     <script>
         // กำหนด URL เริ่มต้นที่ต้องการใช้อัตโนมัติ
-        const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz7byNUBrOE_Oenm5wOcRDWruKib4bzzuCJ8Kzv3PkiBw1pJq6xTsIjeQjHrUu5sGvTnw/exec';
+        const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwu9sZKXh9W5MICfJkm9Ohlxl8_PPRZpZph8FwFYJ3UJFmFfUWbr-J8xBsyFGzZIvy8oA/exec';
 
         // บันทึกลง localStorage และดึงใช้งานอัตโนมัติทุกครั้งเมื่อเปิดเว็บ
         localStorage.setItem('037_script_url', DEFAULT_SCRIPT_URL);
@@ -1190,7 +1190,6 @@
             if (idVal) {
                 const idx = items.findIndex(i => Number(i.id) === Number(idVal));
                 if (idx !== -1) {
-                    // คงสถานะเดิมไว้
                     newItemObj.isOrdered = items[idx].isOrdered || false;
                     newItemObj.orderedQty = items[idx].orderedQty || 0;
                     newItemObj.orderedNote = items[idx].orderedNote || '';
@@ -1307,7 +1306,6 @@
 
             if (selectedAdjustType === 'ADD') {
                 item.stock += qty;
-                // เมือนับของเข้ามาเติม ปลดล็อคสถานะ "สั่งซื้อแล้ว"
                 if (item.stock > item.minAlert) {
                     item.isOrdered = false;
                     item.orderedQty = 0;
@@ -1434,7 +1432,6 @@
 
             item.stock += qty;
             item.lastCost = unitCost;
-            // ซื้อเข้าสต๊อกเรียบร้อย ล้างสถานะสั่งซื้อแล้ว
             item.isOrdered = false;
             item.orderedQty = 0;
             item.orderedNote = '';
@@ -1478,7 +1475,7 @@
             tbody.innerHTML = filteredPurchases.map(p => `
                 <tr class="hover:bg-slate-50 transition">
                     <td class="py-2.5 px-3 text-slate-500">${escapeHtml(p.date)}</td>
-                    <td class="py-2.5 px-[#3] font-medium text-slate-800">${escapeHtml(p.itemName)} <span class="text-[10px] text-slate-400">(${escapeHtml(p.itemCode)})</span></td>
+                    <td class="py-2.5 px-3 font-medium text-slate-800">${escapeHtml(p.itemName)} <span class="text-[10px] text-slate-400">(${escapeHtml(p.itemCode)})</span></td>
                     <td class="py-2.5 px-3 text-slate-700">+${p.qty} ${escapeHtml(p.unit)}</td>
                     <td class="py-2.5 px-3 text-slate-500">${escapeHtml(p.supplier || '-')}</td>
                     <td class="py-2.5 px-3 font-semibold text-emerald-700 text-right">฿${Number(p.total).toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
